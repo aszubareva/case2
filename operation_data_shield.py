@@ -3,8 +3,44 @@ import base64
 import codecs
 
 
+def check_luhn(card_number):
+    """
+    Проверяет номер карты по алгоритму Луна.
+    """
+    digits = [int(d) for d in str(card_number) if d.isdigit()]
+    digits.reverse()
+    total_sum = 0
+
+    for i, digit in enumerate(digits):
+        if i % 2 == 1:
+            digit *= 2
+            if digit > 9:
+                digit -= 9
+
+        total_sum += digit
+
+    return total_sum % 10 == 0
+
+
 def find_and_validate_credit_cards(text):
-    pass
+    """
+    Ищет номера банковских карт
+    Возвращает: список найденных номеров банковских карт
+    """
+
+    result = {
+        'valid': [],
+        'invalid': []
+    }
+    cards = re.findall(r'\b\d{4}[^\d\wа-яА-Я]*\d{4}[^\d\wа-яА-Я]*\d{4}[^\d\wа-яА-Я]*\d{4}\b', text)
+
+    for card in cards:
+        if check_luhn(card):
+            result['valid'].append(card)
+        else:
+            result['invalid'].append(card)
+
+    return result
 
 
 def find_secrets(text):
@@ -173,6 +209,7 @@ if __name__ == "__main__":
     # Чтение файлов с данными
     with open('data_leak_sample.txt', 'r', encoding='utf-8') as f:
         main_text = f.read()
+        print(find_and_validate_credit_cards(main_text))
     with open('web_server_logs.txt', 'r', encoding='utf-8') as f:
         log_text = f.read()
     with open('messy_data.txt', 'r', encoding='utf-8') as f:
