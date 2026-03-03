@@ -7,19 +7,24 @@ def check_luhn(card_number):
     """
     Проверяет номер карты по алгоритму Луна.
     """
-    digits = [int(d) for d in str(card_number) if d.isdigit()]
-    digits.reverse()
-    total_sum = 0
+    try:
+        digits = [int(d) for d in str(card_number) if d.isdigit()]
+        digits.reverse()
+        total_sum = 0
 
-    for i, digit in enumerate(digits):
-        if i % 2 == 1:
-            digit *= 2
-            if digit > 9:
-                digit -= 9
+        for i, digit in enumerate(digits):
+            if i % 2 == 1:
+                digit *= 2
+                if digit > 9:
+                    digit -= 9
 
-        total_sum += digit
+            total_sum += digit
 
-    return total_sum % 10 == 0
+        return total_sum % 10 == 0
+
+    except (ValueError, TypeError):
+        pass
+
 
 
 def find_and_validate_credit_cards(text):
@@ -27,20 +32,24 @@ def find_and_validate_credit_cards(text):
     Ищет номера банковских карт
     Возвращает: список найденных номеров банковских карт
     """
+    try:
+        result = {
+            'valid': [],
+            'invalid': []
+        }
+        cards = re.findall(r'\b\d{4}[^\d\wа-яА-Я]*\d{4}[^\d\wа-яА-Я]*\d{4}['
+                           r'^\d\wа-яА-Я]*\d{4}\b', text)
 
-    result = {
-        'valid': [],
-        'invalid': []
-    }
-    cards = re.findall(r'\b\d{4}[^\d\wа-яА-Я]*\d{4}[^\d\wа-яА-Я]*\d{4}[^\d\wа-яА-Я]*\d{4}\b', text)
+        for card in cards:
+            if check_luhn(card):
+                result['valid'].append(card)
+            else:
+                result['invalid'].append(card)
 
-    for card in cards:
-        if check_luhn(card):
-            result['valid'].append(card)
-        else:
-            result['invalid'].append(card)
+        return result
 
-    return result
+    except (ValueError, TypeError):
+        pass
 
 
 def find_secrets(text):
@@ -81,7 +90,45 @@ def find_secrets(text):
 
 
 def find_system_info(text):
-    pass
+    """
+    Ищет системную информацию (IP, файлы, email).
+    Возвращает: {'ips': [], 'files': [], 'emails': []}
+    """
+
+    result = {
+        'ips': [],
+        'files': [],
+        'emails': []
+    }
+
+    # Ищем IP-адреса (v4 и v6)
+    ipv4_pattern = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
+    ipv6_pattern = r'\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b'
+    ips = re.findall(ipv4_pattern, text)
+    ips += re.findall(ipv6_pattern, text)
+    result['ips'] = ips
+
+    # Ищем файлы
+    ext = (
+        r'jpg|png|bmp|gif|tif|doc|docx|xls|xlsx|pdf|txt|zip|rar|7z|'
+        r'gzip|mp3|wav|midi|aac|mp4|avi|mkv|wmv|flv|mpeg|html|htm|'
+        r'mht|ppt|pptx|mdb|accdb|iso|cdr|torrent|djvu|fb2|epub|mobi|'
+        r'psd|exe'
+    )
+    simple_file_pattern = r'\b[\w\-]+\.(?:' + ext + r')\b'
+    path_file_pattern = (
+        r'\b[A-Z]:[\\/]+(?:[\w\-]+[\\/]+)*[\w\-]+\.(?:' + ext + r')\b'
+    )
+
+    files = re.findall(simple_file_pattern, text)
+    files += re.findall(path_file_pattern, text)
+    result['files'] = files
+
+    # Ищем emails
+    email_pattern = r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b'
+    result['emails'] = re.findall(email_pattern, text)
+
+    return result
 
 
 def decode_messages(text):
@@ -209,7 +256,6 @@ if __name__ == "__main__":
     # Чтение файлов с данными
     with open('data_leak_sample.txt', 'r', encoding='utf-8') as f:
         main_text = f.read()
-        print(find_and_validate_credit_cards(main_text))
     with open('web_server_logs.txt', 'r', encoding='utf-8') as f:
         log_text = f.read()
     with open('messy_data.txt', 'r', encoding='utf-8') as f:

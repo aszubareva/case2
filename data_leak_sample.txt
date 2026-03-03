@@ -3,8 +3,17 @@
 Карты: 4532-4512-8795-2109, 4111 1111 1111 1111, 0000-0000-0000-0000, 0000     0000 -p 0000 0000, 8888888888888887, 0000-0000 - 0000-0000
 API-ключи: sk_live_51Mn8cB7xY9zA1b2C3d4E5f6G7h8I9j0K, pk_test_123abc
 Пароли: like_This_123!, Summer2024!
-IP-адреса: 192.168.1.1, 10.0.0.255
-Email: alice.wonderland@securecorp.com
+IP-адреса: 192.168.1.1, 10.0.0.255, 2001:0db8:0000:0042:0000:8a2e:0370:7334
+Email: alice.wonderland@securecorp.com, a@g.nsu.ru, text@text
 Base64: VGhpcyBpcyBhIHNlY3JldCBtZXNzYWdlIQ==
 Hex: 0x4D7950617373
 ROT13: Gur cnffjbeq vf Summer2024!
+Files: image_01.jpg, report-2023.pdf, work.docx, data.xlsx,
+notes.txt, archive.7z, music_track.mp3, video_final.mp4,
+presentation.pptx, database.accdb, disk_image.iso,
+vector_logo.cdr, book.fb2, project_layout.psd,
+google.com, yandex.ru, mail.net,
+some.longdomain, C:/process.exe, script.js,
+just_text_without_ext, 127.0.0.1,
+..invisible_file, test.unknown,
+C:\Users\Admin\Desktop\photo.jpg, C:\\process.exe, C:\\.exe
