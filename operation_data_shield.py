@@ -214,8 +214,113 @@ def decode_messages(text):
     return decoded_messages
 
 
-def analyze_logs(text):
-    pass
+def analyze_logs(log_text: str):
+    """
+    Анализирует текстовые логи веб-сервера на наличие угроз безопасности.
+
+    Аргументы:
+        log_text: Многострочный текст лога (формат Apache/Nginx Combined Log)
+
+    Возвращает:
+        Словарь с четырьмя категориями угроз, каждая содержит
+        список подозрительных строк лога.
+
+    Пример формата лога:
+        192.168.1.1 - - [01/Jan/2024:12:00:00] "GET /page?id=1 HTTP/1.1" 200 512 "-" "Mozilla/5.0"
+    """
+    
+    # Словарь для хранения результатов по категориям
+    result = {
+        "sql_injections": [],
+        "xss_attempts": [],
+        "suspicious_user_agents": [],
+        "failed_logins": [],
+    }
+
+    # --- Паттерн для обнаружения SQL-инъекций ---
+    # \b          — граница слова (чтобы "reunion" не считалось за "union")
+    # union\s+select — классическая SQL-инъекция: UNION SELECT
+    # or\s+'1'='1    — попытка обхода авторизации: OR '1'='1'
+    # --           — SQL-комментарий (часто используется для обрезки запроса)
+    # ;            — разделитель SQL-запросов (для цепочки инъекций)
+    # \bselect\b   — голый SELECT в параметрах URL (подозрительно)
+    SQL_PATTERN = re.compile(
+    r"(\bunion\s+select\b|\bor\s+'?1'='?1\b|--|;|\bselect\b)",
+    re.IGNORECASE,
+	)
+
+    # --- Паттерн для обнаружения XSS-атак (межсайтовый скриптинг) ---
+    # <script    — начало тега <script> (внедрение JS-кода)
+    # javascript: — псевдопротокол в ссылках: href="javascript:alert(1)"
+    # onerror=   — обработчик ошибки: <img onerror="alert(1)">
+    # onload=    — обработчик загрузки: <body onload="alert(1)">
+    XSS_PATTERN = re.compile(
+    r"(<script\b|javascript:|onerror=|onload=)",
+    re.IGNORECASE
+	)
+
+    # --- Паттерн для подозрительных User-Agent ---
+    # Эти инструменты часто используются для автоматизированных атак:
+    # sqlmap          — автоматический поиск SQL-инъекций
+    # nikto           — сканер уязвимостей веб-серверов
+    # evilbot         — вредоносный бот
+    # curl            — консольный HTTP-клиент (может быть легитимным!)
+    # python-requests — библиотека requests в Python (тоже может быть легитимной)
+    SUSPICIOUS_UA = re.compile(
+    r"(sqlmap|nikto|evilbot|curl|python-requests)",
+    re.IGNORECASE,
+	)
+
+    # --- Паттерн для HTTP-статусов, означающих отказ в доступе ---
+    # \s(401|403)\s — ищем коды статусов, окружённые пробелами:
+    #   401 — Unauthorized (не авторизован)
+    #   403 — Forbidden (запрещено)
+    STATUS_PATTERN = re.compile(r"\s(401|403)\s")
+
+    # --- Паттерн для извлечения User-Agent из строки лога ---
+    # Стандартный формат Apache/Nginx лога:
+    #   IP - - [дата] "GET /path HTTP/1.1" 200 1234 "referer" "User-Agent"
+    # Берём последнюю строку в кавычках — это обычно User-Agent
+    # "[^"]+"  — любой текст в двойных кавычках
+    # \s*$     — возможные пробелы в конце строки
+    UA_PATTERN = re.compile(r'"([^"]+)"\s*$') 
+
+
+    # Обрабатываем лог построчно
+    for line in log_text.splitlines():
+
+        # Пропускаем пустые строки
+        if not line.strip():
+            continue
+        
+        # --- Проверка 1: SQL-инъекции ---
+        # Ищем SQL-паттерны в любом месте строки лога
+        # (обычно они попадают в URL или POST-параметры)
+        if SQL_PATTERN.search(line):
+            result["sql_injections"].append(line)
+
+        # --- Проверка 2: XSS-атаки ---
+        # Ищем попытки внедрения JavaScript-кода
+        if XSS_PATTERN.search(line):
+            result["xss_attempts"].append(line)
+
+        # --- Проверка 3: Неудачные попытки входа ---
+        # Считаем подозрительными:
+        #   - Ответы 401 (не авторизован) и 403 (запрещено)
+        #   - Обращения к /login (страница авторизации)
+        #   - Обращения к /admin (панель администратора)
+        if STATUS_PATTERN.search(line) or "/login" in line or "/admin" in line:
+            result["failed_logins"].append(line)
+
+         # --- Проверка 4: Подозрительные User-Agent ---
+        # Шаг 1: Извлекаем User-Agent (последняя строка в кавычках)
+        ua_match = UA_PATTERN.search(line)
+
+        # Шаг 2: Если User-Agent найден — проверяем его по чёрному списку
+        if ua_match and SUSPICIOUS_UA.search(ua_match.group(1)):
+            result["suspicious_user_agents"].append(line)
+
+    return result
 
 
 def normalize_and_validate(data):
