@@ -2,7 +2,6 @@ import re
 import base64
 import codecs
 
-
 def check_luhn(card_number):
     """
     Проверяет номер карты по алгоритму Луна.
@@ -24,8 +23,6 @@ def check_luhn(card_number):
 
     except (ValueError, TypeError):
         pass
-
-
 
 def find_and_validate_credit_cards(text):
     """
@@ -50,7 +47,6 @@ def find_and_validate_credit_cards(text):
 
     except (ValueError, TypeError):
         pass
-
 
 def find_secrets(text):
     """
@@ -87,7 +83,6 @@ def find_secrets(text):
             if count >= 3:
                 secrets['passwords'].add(element)
     return secrets
-
 
 def find_system_info(text):
     """
@@ -129,7 +124,6 @@ def find_system_info(text):
     result['emails'] = re.findall(email_pattern, text)
 
     return result
-
 
 def decode_messages(text):
     """
@@ -212,7 +206,6 @@ def decode_messages(text):
             pass
 
     return decoded_messages
-
 
 def analyze_logs(log_text: str):
     """
@@ -322,10 +315,8 @@ def analyze_logs(log_text: str):
 
     return result
 
-
 def normalize_and_validate(data):
     pass
-
 
 def generate_comprehensive_report(main_text, log_text, messy_data):
     """ Генерирует полный отчет о расследовании """
@@ -337,7 +328,6 @@ def generate_comprehensive_report(main_text, log_text, messy_data):
               'normalized_data': normalize_and_validate(messy_data)
               }
     return report
-
 
 def print_report(report):
     """Красиво выводит отчет"""
@@ -356,7 +346,6 @@ def print_report(report):
         print("-" * 30)
         print(data)
         # Детальный вывод данных...
-
 
 if __name__ == "__main__":
     # Чтение файлов с данными
