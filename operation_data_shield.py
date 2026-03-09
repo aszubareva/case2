@@ -1,6 +1,7 @@
 import re
 import base64
 import codecs
+import ast
 
 def check_luhn(card_number):
     """
@@ -347,6 +348,77 @@ def print_report(report):
         print(data)
         # Детальный вывод данных...
 
+
+def report_preparation(report):
+    """
+    Готовит наш отчет для сравнения с отчетом другой команды.
+    :param report:
+    :return:
+    """
+
+    result = []
+
+    # финансовые данные
+    result += report['financial_data']['valid']
+    result += report['financial_data']['invalid']
+
+    # секреты
+    result += list(report['secrets']['api_keys'])
+    result += list(report['secrets']['passwords'])
+
+    # системная информация
+    result += report['system_info']['ips']
+    result += report['system_info']['files']
+    result += report['system_info']['emails']
+
+    # расшифрованные сообщения
+    result += report['encoded_messages']['base64']
+    result += report['encoded_messages']['hex']
+    result += report['encoded_messages']['rot13']
+
+    # угрозы безопаности
+    result += report['security_threats']['sql_injections']
+    result += report['security_threats']['xss_attempts']
+    result += report['security_threats']['suspicious_user_agents']
+    result += report['security_threats']['failed_logins']
+
+    return result
+
+
+def normalize_string(string):
+    """
+    Убирает лишние слэши, кавычки и пробелы
+    """
+    string = (
+        string.replace("\\\\", "\\")  # нормализуем слэши
+        .replace("\\'", "'")  # нормализуем кавычки
+        .strip()  # убираем пробелы
+    )
+    return string
+
+
+def results_comparison(our_report, report_at):
+    """
+    Сравнивает результаты нашей и другой команды.
+    """
+
+    # Наш отчет
+    our_report = report_preparation(our_report)
+
+    # Убираем лишние пробелы, кавычки, слэши, повторяющиеся артефакты
+    our_report = set(
+        normalize_string(x) for x in our_report)
+    report_at = set(normalize_string(x) for x in report_at)
+
+    # Результат сравнения.
+    result = {
+        'losses': list(our_report-report_at),
+        'garbage': list(report_at-our_report)
+    }
+
+    return result
+
+
 if __name__ == "__main__":
     # Чтение файлов с данными
     with open('data_leak_sample.txt', 'r', encoding='utf-8') as f:
@@ -355,6 +427,24 @@ if __name__ == "__main__":
         log_text = f.read()
     with open('messy_data.txt', 'r', encoding='utf-8') as f:
         messy_data = f.read()
+
         # Запуск расследования
         report = generate_comprehensive_report(main_text, log_text, messy_data)
         print_report(report)
+
+        # Мусор и потери других команд.
+        teams = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11]
+        for team in teams:
+            file_name = f'input{team}.txt'
+
+            # Пока нет инпутов других команд, поэтому сделаем так.
+            file_name = 'report_anotherteam'
+
+            # Читаем вывод другой команды.
+            with open(file_name, 'r', encoding='utf-8') as f:
+                report_anotherteam = f.readlines()
+
+                # Мусор и потери.
+                garbage_losses = results_comparison(report, report_anotherteam)
+                print(f"Мусор и потери команды {team}.")
+                print(garbage_losses)
