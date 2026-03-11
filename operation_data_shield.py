@@ -25,6 +25,7 @@ def check_luhn(card_number):
     except (ValueError, TypeError):
         pass
 
+
 def find_and_validate_credit_cards(text):
     """
     Ищет номера банковских карт
@@ -48,6 +49,7 @@ def find_and_validate_credit_cards(text):
 
     except (ValueError, TypeError):
         pass
+
 
 def find_secrets(text):
     """
@@ -84,6 +86,7 @@ def find_secrets(text):
             if count >= 3:
                 secrets['passwords'].add(element)
     return secrets
+
 
 def find_system_info(text):
     """
@@ -125,6 +128,7 @@ def find_system_info(text):
     result['emails'] = re.findall(email_pattern, text)
 
     return result
+
 
 def decode_messages(text):
     """
@@ -208,6 +212,7 @@ def decode_messages(text):
 
     return decoded_messages
 
+
 def analyze_logs(log_text: str):
     """
     Анализирует текстовые логи веб-сервера на наличие угроз безопасности.
@@ -279,8 +284,10 @@ def analyze_logs(log_text: str):
 
     return result
 
+
 def normalize_and_validate(data):
     pass
+
 
 def generate_comprehensive_report(main_text, log_text, messy_data):
     """ Генерирует полный отчет о расследовании """
@@ -292,6 +299,7 @@ def generate_comprehensive_report(main_text, log_text, messy_data):
               'normalized_data': normalize_and_validate(messy_data)
               }
     return report
+
 
 def print_report(report):
     """Красиво выводит отчет"""
