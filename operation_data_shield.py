@@ -1,3 +1,6 @@
+# Case-study #2
+# Developers:  Ufilin A., Zubareva A., Berdyshev A.
+
 import re
 import base64
 import codecs
@@ -285,8 +288,59 @@ def analyze_logs(log_text: str):
     return result
 
 
-def normalize_and_validate(data):
-    pass
+def normalize_and_validate(text):
+
+    """ Приводит данные к единому формату и проверяет их
+    Возвращает: { 'phones': {'valid': [], 'invalid': []},
+                'inn': {'valid': [], 'invalid': []},
+                'cards': {'valid': [], 'invalid': []} }
+    """
+
+    result = {
+        'phones': {'valid': [], 'invalid': []},
+        'inn': {'valid': [], 'invalid': []},
+        'cards': {'valid': [], 'invalid': []}
+    }
+
+    # Телефоны
+    phone_matches = re.findall(r'\+?\d[\d\-\s]{9,}\d', text)
+
+    for phone in phone_matches:
+        digits = re.sub(r'\D', '', phone)
+
+        if len(digits) == 11:
+            if digits.startswith('8'):
+                digits = '7' + digits[1:]
+
+            if digits.startswith('7'):
+                normalized = '+' + digits
+                result['phones']['valid'].append(normalized)
+            else:
+                result['phones']['invalid'].append(phone)
+        else:
+            result['phones']['invalid'].append(phone)
+
+    # ИНН
+    inn_matches = re.findall(r'\b\d{10,12}\b', text)
+
+    for inn in inn_matches:
+        if len(inn) in (10, 12):
+            result['inn']['valid'].append(inn)
+        else:
+            result['inn']['invalid'].append(inn)
+
+    # Банковские карты
+    card_matches = re.findall(r'(?:\d[ -]?){16}', text)
+
+    for card in card_matches:
+        cleaned = re.sub(r'\D', '', card)
+
+        if len(cleaned) == 16 and check_luhn(cleaned):
+            result['cards']['valid'].append(cleaned)
+        else:
+            result['cards']['invalid'].append(card)
+
+    return result
 
 
 def generate_comprehensive_report(main_text, log_text, messy_data):
@@ -404,6 +458,7 @@ if __name__ == "__main__":
         print_report(report)
 
         # Мусор и потери других команд.
+        print('Мусор и потери других команд.')
         teams = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11]
         for team in teams:
             file_name = f'input{team}.txt'
